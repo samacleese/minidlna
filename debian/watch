@@ -1,0 +1,3 @@
+version=3
+opts=dversionmangle=s/\+dfsg// \
+https://sf.net/minidlna/minidlna-([0-9\.]+)\.tar\.gz debian uupdate

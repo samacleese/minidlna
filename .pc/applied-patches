@@ -1,0 +1,9 @@
+01-run-instead-of-var-run.patch
+03-make-sure-the-database-is-closed-after-scanning.patch
+05-update-help-output.patch
+07-fix-multi-artist-album-handling.patch
+08-Fix-testupnpdescgen-build.patch
+09-do-not-disable-logs-with-systemd.patch
+10-do-not-close-socket-on-sighup.patch
+CVE-2022-26505.patch
+upnphttp-Fix-chunk-length-parsing.patch
