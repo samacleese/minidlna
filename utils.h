@@ -51,10 +51,14 @@ strcatf(struct string_s *str, const char *fmt, ...)
 
 	return ret;
 }
+/* Ignore the warning, we terminate the last byte with null */
 static inline void strncpyt(char *dst, const char *src, size_t len)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
 	strncpy(dst, src, --len);
 	dst[len] = '\0';
+#pragma GCC diagnostic pop
 }
 static inline int is_reg(const struct dirent *d)
 {
