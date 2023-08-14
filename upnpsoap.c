@@ -643,7 +643,7 @@ parse_sort_criteria(char *sortCriteria, int *error)
 		}
 		else if( strcasecmp(item, "dc:title") == 0 )
 		{
-			strcatf(&str, "d.TITLE");
+			strcatf(&str, "IFNULL(d.SORT_NAME, d.TITLE)");
 			title_sorted = 1;
 		}
 		else if( strcasecmp(item, "dc:date") == 0 )
@@ -1448,18 +1448,18 @@ BrowseContentDirectory(struct upnphttp * h, const char * action)
 			if( strncmp(ObjectID, MUSIC_PLIST_ID, strlen(MUSIC_PLIST_ID)) == 0 )
 			{
 				if( strcmp(ObjectID, MUSIC_PLIST_ID) == 0 )
-					ret = xasprintf(&orderBy, "order by d.TITLE");
+					ret = xasprintf(&orderBy, "order by IFNULL(d.SORT_NAME, d.TITLE)");
 				else
 					ret = xasprintf(&orderBy, "order by length(OBJECT_ID), OBJECT_ID");
 			}
 			else if( args.flags & FLAG_FORCE_SORT )
 			{
 				__SORT_LIMIT
-				ret = xasprintf(&orderBy, "order by o.CLASS, d.DISC, d.TRACK, d.TITLE");
+				ret = xasprintf(&orderBy, "order by o.CLASS, d.DISC, d.TRACK, IFNULL(d.SORT_NAME, d.TITLE)");
 			}
 			/* LG TV ordering bug */
 			else if( args.client == ELGDevice )
-				ret = xasprintf(&orderBy, "order by o.CLASS, d.TITLE");
+				ret = xasprintf(&orderBy, "order by o.CLASS, IFNULL(d.SORT_NAME, d.TITLE)");
 			else
 				orderBy = parse_sort_criteria(SortCriteria, &ret);
 			if( ret == -1 )
@@ -1707,7 +1707,7 @@ parse_search_criteria(const char *str, char *sep)
 				}
 				else if (strncmp(s, "dc:title", 8) == 0)
 				{
-					strcatf(&criteria, "d.TITLE");
+					strcatf(&criteria, "IFNULL(d.SORT_NAME, d.TITLE)");
 					s += 8;
 					continue;
 				}

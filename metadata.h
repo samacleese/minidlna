@@ -44,6 +44,7 @@ typedef struct metadata_s {
 	char *       dlna_pn;
 	int          thumb_size;
 	uint8_t *    thumb_data;
+	char *       sort_name;
 } metadata_t;
 
 typedef enum {

@@ -55,6 +55,7 @@
 #define FLAG_MIME	0x00000100
 #define FLAG_DURATION	0x00000200
 #define FLAG_RESOLUTION	0x00000400
+#define FLAG_SORT_NAME  0x00000800
 
 /* Audio profile flags */
 enum audio_profiles {
@@ -274,6 +275,8 @@ free_metadata(metadata_t *m, uint32_t flags)
 		free(m->duration);
 	if( flags & FLAG_RESOLUTION )
 		free(m->resolution);
+	if( flags & FLAG_SORT_NAME )
+		free(m->sort_name);
 }
 
 int64_t
@@ -405,6 +408,13 @@ GetAudioMetadata(const char *path, const char *name)
 		m.title = strdup(name);
 		strip_ext(m.title);
 	}
+
+	if( !m.sort_name )
+	{
+		m.sort_name = m.title;
+		free_flags &= ~FLAG_SORT_NAME;
+	}
+
 	for( i = ROLE_START; i < N_ROLE; i++ )
 	{
 		if( song.contributor[i] && *song.contributor[i] )
@@ -658,6 +668,13 @@ no_exifdata:
 		m.dlna_pn = strdup("JPEG_LRG");
 	xasprintf(&m.resolution, "%dx%d", width, height);
 	m.title = strdup(name);
+
+	if( !m.sort_name )
+	{
+		m.sort_name = m.title;
+		free_flags &= ~FLAG_SORT_NAME;
+	}
+
 	strip_ext(m.title);
 
 	ret = sql_exec(db, "INSERT into DETAILS"
@@ -1485,13 +1502,31 @@ GetVideoMetadata(const char *path, const char *name)
 			{
 				//DEBUG DPRINTF(E_DEBUG, L_METADATA, "  %-16s: %s\n", tag->key, tag->value);
 				if( strcmp(tag->key, "title") == 0 )
+				{
 					m.title = escape_tag(trim(tag->value), 1);
+					free_flags |= FLAG_TITLE;
+				}
+				else if( strcmp(tag->key, "sort_name") == 0 )
+				{
+					m.sort_name = escape_tag(trim(tag->value), 1);
+					free_flags |= FLAG_SORT_NAME;
+					DPRINTF(E_INFO, L_METADATA, "Found Sort Name: %s\n", m.sort_name);
+				}
 				else if( strcmp(tag->key, "genre") == 0 )
+				{
 					m.genre = escape_tag(trim(tag->value), 1);
+					free_flags |= FLAG_GENRE;
+				}
 				else if( strcmp(tag->key, "artist") == 0 )
+				{
 					m.artist = escape_tag(trim(tag->value), 1);
+					free_flags |= FLAG_ARTIST;
+				}
 				else if( strcmp(tag->key, "comment") == 0 )
+				{
 					m.comment = escape_tag(trim(tag->value), 1);
+					free_flags |= FLAG_COMMENT;
+				}
 			}
 		}
 	}
@@ -1585,12 +1620,12 @@ video_no_dlna:
 
 	ret = sql_exec(db, "INSERT into DETAILS"
 	                   " (PATH, SIZE, TIMESTAMP, DURATION, DATE, CHANNELS, BITRATE, SAMPLERATE, RESOLUTION,"
-	                   "  TITLE, CREATOR, ARTIST, GENRE, COMMENT, DLNA_PN, MIME, ALBUM_ART, DISC, TRACK) "
+	                   "  TITLE, SORT_NAME, CREATOR, ARTIST, GENRE, COMMENT, DLNA_PN, MIME, ALBUM_ART, DISC, TRACK) "
 	                   "VALUES"
-	                   " (%Q, %lld, %lld, %Q, %Q, %u, %u, %u, %Q, '%q', %Q, %Q, %Q, %Q, %Q, '%q', %lld, %u, %u);",
+	                   " (%Q, %lld, %lld, %Q, %Q, %u, %u, %u, %Q, '%q', %Q, %Q, %Q, %Q, %Q, %Q, '%q', %lld, %u, %u);",
 	                   path, (long long)file.st_size, (long long)file.st_mtime, m.duration,
 	                   m.date, m.channels, m.bitrate, m.frequency, m.resolution,
-	                   m.title, m.creator, m.artist, m.genre, m.comment, m.dlna_pn,
+	                   m.title, m.sort_name, m.creator, m.artist, m.genre, m.comment, m.dlna_pn,
 	                   m.mime, album_art, m.disc, m.track);
 	if( ret != SQLITE_OK )
 	{
